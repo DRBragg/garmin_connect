@@ -24,10 +24,12 @@ gem install garmin_connect
 require "garmin_connect"
 
 # Login with credentials (tokens are saved to ~/.garminconnect automatically)
-client = GarminConnect.login(email: "you@example.com", password: "your-password")
+client = GarminConnect::Client.new(email: "you@example.com", password: "your-password")
+client.login
 
 # Subsequent sessions resume from saved tokens (no re-login for ~1 year)
-client = GarminConnect.login
+client = GarminConnect::Client.new
+client.login
 
 # Get today's stats
 puts client.daily_summary
