@@ -39,6 +39,48 @@ module GarminConnect
         connection.get("/workout-service/schedule/#{scheduled_workout_id}")
       end
 
+      # --- Typed Workout Helpers ---
+
+      # Create a running workout.
+      # @param name [String] workout name
+      # @param steps [Array<Hash>] workout step definitions
+      # @param description [String, nil] optional description
+      def create_running_workout(name, steps: [], description: nil)
+        create_typed_workout(name, sport_type: running_sport_type, steps: steps, description: description)
+      end
+
+      # Create a cycling workout.
+      # @param name [String] workout name
+      # @param steps [Array<Hash>] workout step definitions
+      # @param description [String, nil] optional description
+      def create_cycling_workout(name, steps: [], description: nil)
+        create_typed_workout(name, sport_type: cycling_sport_type, steps: steps, description: description)
+      end
+
+      # Create a swimming workout.
+      # @param name [String] workout name
+      # @param steps [Array<Hash>] workout step definitions
+      # @param description [String, nil] optional description
+      def create_swimming_workout(name, steps: [], description: nil)
+        create_typed_workout(name, sport_type: swimming_sport_type, steps: steps, description: description)
+      end
+
+      # Create a walking workout.
+      # @param name [String] workout name
+      # @param steps [Array<Hash>] workout step definitions
+      # @param description [String, nil] optional description
+      def create_walking_workout(name, steps: [], description: nil)
+        create_typed_workout(name, sport_type: walking_sport_type, steps: steps, description: description)
+      end
+
+      # Create a hiking workout.
+      # @param name [String] workout name
+      # @param steps [Array<Hash>] workout step definitions
+      # @param description [String, nil] optional description
+      def create_hiking_workout(name, steps: [], description: nil)
+        create_typed_workout(name, sport_type: hiking_sport_type, steps: steps, description: description)
+      end
+
       # --- Training Plans ---
 
       # Get all available training plans.
@@ -56,6 +98,45 @@ module GarminConnect
       # @param plan_id [String, Integer]
       def adaptive_training_plan(plan_id)
         connection.get("/trainingplan-service/trainingplan/fbt-adaptive/#{plan_id}")
+      end
+
+      private
+
+      def create_typed_workout(name, sport_type:, steps: [], description: nil)
+        payload = {
+          "workoutName" => name,
+          "sportType" => sport_type,
+          "workoutSegments" => [
+            {
+              "segmentOrder" => 1,
+              "sportType" => sport_type,
+              "workoutSteps" => steps
+            }
+          ]
+        }
+        payload["description"] = description if description
+
+        create_workout(payload)
+      end
+
+      def running_sport_type
+        { "sportTypeId" => 1, "sportTypeKey" => "running" }
+      end
+
+      def cycling_sport_type
+        { "sportTypeId" => 2, "sportTypeKey" => "cycling" }
+      end
+
+      def swimming_sport_type
+        { "sportTypeId" => 5, "sportTypeKey" => "swimming" }
+      end
+
+      def walking_sport_type
+        { "sportTypeId" => 9, "sportTypeKey" => "walking" }
+      end
+
+      def hiking_sport_type
+        { "sportTypeId" => 3, "sportTypeKey" => "hiking" }
       end
     end
   end

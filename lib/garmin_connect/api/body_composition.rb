@@ -54,11 +54,48 @@ module GarminConnect
         )
       end
 
+      # Add a weigh-in with explicit timestamps.
+      # @param value [Float] weight value
+      # @param date_timestamp [String] local timestamp (e.g., "2026-02-11T08:30:00.000")
+      # @param gmt_timestamp [String] GMT timestamp (e.g., "2026-02-11T14:30:00.000")
+      # @param unit_key [String] "kg" or "lbs"
+      def add_weigh_in_with_timestamps(value, date_timestamp:, gmt_timestamp:, unit_key: "kg")
+        connection.post(
+          "/weight-service/user-weight",
+          body: {
+            "dateTimestamp" => date_timestamp,
+            "gmtTimestamp" => gmt_timestamp,
+            "unitKey" => unit_key,
+            "sourceType" => "MANUAL",
+            "value" => value
+          }
+        )
+      end
+
+      # Upload body composition data as a FIT file.
+      # This is used for full body scale data (body fat %, muscle mass, bone mass, etc.).
+      # @param file_path [String] path to the FIT file containing body composition data
+      def add_body_composition(file_path)
+        connection.upload("/upload-service/upload", file_path: file_path)
+      end
+
       # Delete a specific weigh-in.
       # @param date [Date, String]
       # @param weight_pk [String, Integer] the weigh-in version/pk
       def delete_weigh_in(date, weight_pk)
         connection.delete("/weight-service/weight/#{format_date(date)}/byversion/#{weight_pk}")
+      end
+
+      # Delete all weigh-ins for a specific date.
+      # Fetches all weigh-ins for the day, then deletes each one.
+      # @param date [Date, String]
+      def delete_weigh_ins(date)
+        day_data = daily_weigh_ins(date)
+        entries = day_data&.dig("dateWeightList") || []
+        entries.each do |entry|
+          weight_pk = entry["version"] || entry["samplePk"]
+          delete_weigh_in(date, weight_pk) if weight_pk
+        end
       end
 
       # --- Hydration ---
