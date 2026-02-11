@@ -162,11 +162,30 @@ module GarminConnect
       @unit_system = settings&.dig("userData", "measurementSystem")
 
       profile = connection.get("/userprofile-service/userprofile/profile")
-      @display_name = profile&.dig("displayName")
-      @full_name = profile&.dig("fullName")
-      @user_profile_pk = profile&.dig("profileId") || settings&.dig("id")
+      extract_profile_info(profile)
+
+      @user_profile_pk = extract_profile_pk(profile, settings)
     rescue HTTPError
       # Non-fatal: display_name may not be available
+    end
+
+    def extract_profile_info(profile)
+      return unless profile.is_a?(Hash)
+
+      @display_name = profile.dig("displayName") ||
+                      profile.dig("socialProfile", "displayName") ||
+                      profile.dig("userName")
+
+      @full_name = profile.dig("fullName") ||
+                   profile.dig("socialProfile", "fullName")
+    end
+
+    def extract_profile_pk(profile, settings)
+      return nil unless profile.is_a?(Hash) || settings.is_a?(Hash)
+
+      profile&.dig("profileId") ||
+        profile&.dig("socialProfile", "profileId") ||
+        settings&.dig("id")
     end
 
     # Exposed for API modules that need it.

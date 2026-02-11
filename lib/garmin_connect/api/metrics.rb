@@ -23,7 +23,7 @@ module GarminConnect
         data = training_readiness(date)
         return data unless data.is_a?(Array)
 
-        data.select { |entry| entry["calendarDate"] == format_date(date) }
+        data.select { |entry| entry.is_a?(Hash) && entry["calendarDate"] == format_date(date) }
       end
 
       # Get aggregated training status.

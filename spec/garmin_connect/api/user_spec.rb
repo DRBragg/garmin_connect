@@ -84,6 +84,20 @@ RSpec.describe GarminConnect::API::User do
 
       expect(client.display_name).to eq("TestUser")
     end
+
+    it "extracts display_name from nested socialProfile" do
+      client = build_logged_in_client(
+        profile_body: { "socialProfile" => { "displayName" => "NestedUser", "fullName" => "Nested Name" } })
+
+      expect(client.display_name).to eq("NestedUser")
+    end
+
+    it "falls back to userName when displayName is missing" do
+      client = build_logged_in_client(
+        profile_body: { "userName" => "FallbackUser", "profileId" => 123 })
+
+      expect(client.display_name).to eq("FallbackUser")
+    end
   end
 
   describe "#full_name" do
@@ -91,6 +105,13 @@ RSpec.describe GarminConnect::API::User do
       client = build_logged_in_client
 
       expect(client.full_name).to eq("Test User")
+    end
+
+    it "extracts full_name from nested socialProfile" do
+      client = build_logged_in_client(
+        profile_body: { "socialProfile" => { "displayName" => "X", "fullName" => "Nested Full Name" } })
+
+      expect(client.full_name).to eq("Nested Full Name")
     end
   end
 
