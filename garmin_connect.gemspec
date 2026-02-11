@@ -3,7 +3,7 @@
 require_relative "lib/garmin_connect/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "garmin_connect"
+  spec.name = "ruby_garmin_connect"
   spec.version = GarminConnect::VERSION
   spec.authors = ["DRBragg"]
   spec.email = ["drbragg@gmail.com"]
