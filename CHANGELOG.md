@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.1 (2026-02-11)
+
+### Fixed
+
+- `training_readiness` raising `TypeError: no implicit conversion of String into Integer` when Garmin returns a response with a UTF-8 BOM or unparseable JSON body
+- `display_name` and `full_name` returning `nil` on login when the profile endpoint nests data under `socialProfile` or uses `userName` instead of `displayName`
+
+### Added
+
+- `ParseError` exception class — raised when a response claims `application/json` content-type but the body can't be parsed (instead of silently returning a raw string)
+- UTF-8 BOM stripping in response parsing
+- Fallback profile extraction: tries `displayName` → `socialProfile.displayName` → `userName`
+
+### Improved
+
+- Test coverage increased to 205 examples (up from 199)
+
 ## 0.2.0 (2026-02-11)
 
 ### Added
