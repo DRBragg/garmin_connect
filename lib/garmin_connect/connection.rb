@@ -124,11 +124,23 @@ module GarminConnect
 
     def parse_response(resp)
       return nil if resp.status == 204
-      return resp.body if resp.body.nil? || resp.body.empty?
 
-      JSON.parse(resp.body)
+      body = resp.body
+      return body if body.nil? || body.empty?
+
+      # Strip UTF-8 BOM if present (some Garmin endpoints include it)
+      body = body.b.sub(/\A\xEF\xBB\xBF/n, "").force_encoding("UTF-8")
+
+      JSON.parse(body)
     rescue JSON::ParserError
-      resp.body
+      content_type = resp.headers["content-type"].to_s
+      # If the server said it was JSON but we can't parse it, raise rather than
+      # returning a raw string that callers will misuse.
+      if content_type.include?("application/json")
+        raise ParseError, "Failed to parse JSON response: #{body[0..200]}"
+      end
+
+      body
     end
 
     def handle_errors!(resp)

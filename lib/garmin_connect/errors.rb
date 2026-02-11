@@ -35,6 +35,9 @@ module GarminConnect
   class TooManyRequestsError < HTTPError; end
   class ServerError < HTTPError; end
 
+  # Response parsing errors
+  class ParseError < Error; end
+
   # Maps HTTP status codes to error classes
   HTTP_ERRORS = {
     400 => BadRequestError,

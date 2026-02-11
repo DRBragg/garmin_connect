@@ -111,6 +111,40 @@ RSpec.describe GarminConnect::Connection do
     end
   end
 
+  describe "response parsing" do
+    it "raises ParseError when JSON content-type but invalid JSON body" do
+      stub_request(:get, "https://connectapi.garmin.com/test-service/data")
+        .to_return(status: 200, body: "<html>Server Error</html>", headers: { "Content-Type" => "application/json" })
+
+      conn = build_connection
+
+      expect { conn.get("/test-service/data") }.to raise_error(GarminConnect::ParseError, /Failed to parse JSON/)
+    end
+
+    it "returns raw body when non-JSON content-type and unparseable body" do
+      stub_request(:get, "https://connectapi.garmin.com/test-service/data")
+        .to_return(status: 200, body: "plain text response", headers: { "Content-Type" => "text/plain" })
+
+      conn = build_connection
+      result = conn.get("/test-service/data")
+
+      expect(result).to eq("plain text response")
+    end
+
+    it "strips UTF-8 BOM before parsing JSON" do
+      bom = "\xEF\xBB\xBF"
+      json_with_bom = "#{bom}{\"key\": \"value\"}"
+
+      stub_request(:get, "https://connectapi.garmin.com/test-service/data")
+        .to_return(status: 200, body: json_with_bom, headers: { "Content-Type" => "application/json" })
+
+      conn = build_connection
+      result = conn.get("/test-service/data")
+
+      expect(result).to eq("key" => "value")
+    end
+  end
+
   describe "token refresh" do
     it "refreshes the token when expired" do
       expired_oauth2 = build_oauth2_token(expires_at: Time.now.to_i - 100)
